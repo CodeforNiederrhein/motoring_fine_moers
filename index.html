@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Daten gefiltert</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css"/>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.mapbox.com/mapbox.js/v2.4.0/mapbox.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+    <link href='https://api.mapbox.com/mapbox.js/v2.4.0/mapbox.css' rel='stylesheet' />
+    <style type="text/css">
+        #logo {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            font-size: 35px;
+        }
+
+        #map {
+            top: 5px;
+            width: 100%;
+            height: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            font-family: Arial, sans-serif;
+        }
+        #best {
+            position: relative;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+<script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/leaflet.markercluster.js'></script>
+<link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/MarkerCluster.css' rel='stylesheet' />
+<link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/MarkerCluster.Default.css' rel='stylesheet'/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+<div id="logo">
+    <img src="moers-wappen_fuer-alle_rgb.png" style="width: 30px">
+    <b> Blitzer im Moerser Stadtgebiet <br> im Zeitraum vom 01.01.2015-31.12.2015 </b>
+</div>
+<div id="map"></div>
+<div id="best">
+</div>
+<script>
+    var blitzerIcon = L.icon({
+        iconUrl: 'blitzer.png',
+        iconSize: [43,43],
+        iconAnchor:   [21.5, 21.5], // point of the icon which will correspond to marker's location
+        popupAnchor:  [0, -20] // point from which the popup should open relative to the iconAnchor
+    });
+    L.mapbox.accessToken ='pk.eyJ1IjoiYmVuZTc3IiwiYSI6ImNpb3h3cjgxOTAwZGR3OWtqYWpsc3YzbmwifQ.mD3vJO8KBcSuyElpHJCarw';
+
+    var map = L.mapbox.map('map', 'mapbox.streets')
+            .setView([51.453546, 6.626362], 14);
+
+    var markers = new L.MarkerClusterGroup();
+    var max = 0;
+    var max_str;
+    var maxbus = 0;
+    var maxbus_str;
+    var maxbus_tat;
+    var maxsumbus = 0;
+    var maxsumbus_str;
+    d3.csv("bussgelderfaharenderverkehr.csv", function (error, data) {
+        var nested_data = d3.nest()
+                .key(function (d) {
+                    return d.Tatort;
+                })
+                .key(function (d) {
+                    return d.Tatort2;
+                })
+                .entries(data);
+        for (var j = 0; j < nested_data.length; j++) {
+            if (nested_data[j].values.length == 2) {
+                var sum = nested_data[j].values[0].values.length + nested_data[j].values[1].values.length;
+                var sumbus1 = 0;
+                var sumbus2 = 0;
+                var sumbus = 0;
+                for (var k = 0; k < nested_data[j].values[0].values.length; k++) {
+                    sumbus1 = sumbus1 + +nested_data[j].values[0].values[k].Geldbusse;
+                    if (maxbus < nested_data[j].values[0].values[k].Geldbusse) {
+                        maxbus = +nested_data[j].values[0].values[k].Geldbusse;
+                        maxbus_str = nested_data[j].key;
+                        maxbus_tat = nested_data[j].values[0].values[k].Tbnr1;
+                    }
+                }
+                for (var k = 0; k < nested_data[j].values[1].values.length; k++) {
+                    sumbus2 = sumbus2 + +nested_data[j].values[1].values[k].Geldbusse;
+                    if (maxbus < nested_data[j].values[1].values[k].Geldbusse) {
+                        maxbus = +nested_data[j].values[1].values[k].Geldbusse;
+                        maxbus_str = nested_data[j].key;
+                        maxbus_tat = nested_data[j].values[1].values[k].Tbnr1;
+                    }
+                }
+                sumbus = sumbus1 + sumbus2;
+                if (maxsumbus < sumbus) {
+                    maxsumbus = sumbus;
+                    maxsumbus_str = nested_data[j].key;
+
+                }
+                if (max <= sum) {
+                    max = sum;
+                    max_str = nested_data[j].key;
+                }
+                var marker=  L.marker(new L.latLng(nested_data[j].values[0].values[0].lat, nested_data[j].values[0].values[0].lng), {icon:blitzerIcon})
+                marker.bindPopup(nested_data[j].key + "<br>" + "Verstöße in " + nested_data[j].values[0].key + ": " + nested_data[j].values[0].values.length + "<br> "
+                        + "Verstöße in " + nested_data[j].values[1].key + ": " + nested_data[j].values[1].values.length + '<br>' + "Summe der Verstöße: " + settpoint(sum)
+                        + "<br>" + "Summe der Bußgelder: " + settpoint(sumbus) + "€"
+                );
+                markers.addLayer(marker);
+            }
+            else {
+                var sumbus1 = 0;
+                for (var k = 0; k < nested_data[j].values[0].values.length; k++) {
+                    sumbus1 = sumbus1 + +nested_data[j].values[0].values[k].Geldbusse;
+                    if (maxsumbus < sumbus1) {
+                        maxsumbus = sumbus1;
+                        maxsumbus_str = nested_data[j].key;
+
+                    }
+                }
+                var marker1 =  L.marker(new L.latLng(nested_data[j].values[0].values[0].lat, nested_data[j].values[0].values[0].lng), {icon:blitzerIcon})
+                marker1.bindPopup(nested_data[j].key + "<br> " + "Verstöße in " + nested_data[j].values[0].key + ": " + nested_data[j].values[0].values.length
+                        + "<br>" + "Summe Bußgelder: " + settpoint(sumbus1) + "€"
+                );
+                markers.addLayer(marker1);
+            }
+        }
+        document.getElementById('best').innerHTML ='<h2>Und hier noch ein paar interessante Zahlen... </h2>'
+                + 'Die meisten Verstöße wurden in der ' + max_str + ' begangen. Es waren: ' + settpoint(max) + ' Verstöße im Jahr 2015.' +
+                '<br>' + "Die höchste Bußgeldsumme wurde in der " + maxsumbus_str + " erzielt. Es waren: " + settpoint(maxsumbus) + "€." +
+                '<br>' + 'Das höchste Bußgeld wurde auf der ' + maxbus_str + ' erzielt. Es waren: ' + settpoint(maxbus) + '€.' +
+                '<br>' + 'Dabei wurde folgender Tatbestand festgestellt: ' + maxbus_tat + '. Die Tatbestandsnummer besagt, dass die Person innerhalb geschlossener Ortschaften zwischen 31-40 km/h zuschnell gefahren ist.' +
+                '<br>' + 'Den vollständigen Tatbestandskatalog finden sie unter <a href="http://www.kba.de/DE/ZentraleRegister/FAER/BT_KAT_OWI/bkat_owi_01052014_pdf.pdf?__blob=publicationFile&v=4">Bußgeldkatalog</a>. ' +
+                '<br>' + 'Es wurde 2015 an ' + nested_data.length + ' Orten geblitzt.' + '<br>' +
+                '<br>' + 'Für Anregungen können Sie uns gerne eine E-Mail schreiben an: <a href="mailto:offenedaten@moers.de">Offene Daten Moers</a> ' + '<br>' +
+                '<br>' + '<a href="https://www.moers.de/de/inhalt/impressum-und-rechtliche-hinweise/">Impressum</a>';
+    });
+    map.addLayer(markers);
+
+    function settpoint(zahl) {
+        zahl = '' + zahl;
+        if (zahl.length > 3) {
+            var mod = zahl.length % 3;
+            var erg = (mod > 0 ? (zahl.substring(0, mod)) : '');
+            for (var i = 0; i < Math.floor(zahl.length / 3); i++) {
+                if ((mod == 0) && (i == 0)) {
+                    erg += zahl.substring(mod + 3 * i, mod + 3 * i + 3);
+                }
+                else {
+                    erg += '.' + zahl.substring(mod + 3 * i, mod + 3 * i + 3);
+                }
+            }
+            return (erg);
+        } else return zahl;
+    }
+</script>
+</body>
+</html>
