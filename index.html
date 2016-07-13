@@ -16,9 +16,9 @@
 <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/MarkerCluster.css' rel='stylesheet' />
 <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/MarkerCluster.Default.css' rel='stylesheet'/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
-<div id="logo">
-    <img src="moers-wappen_fuer-alle_rgb.png" style="width: 30px">
-    <b> Blitzer im Moerser Stadtgebiet <br> im Zeitraum vom 01.01.2015-31.12.2015 </b>
+<div id="header">
+    <img src="moers-wappen_fuer-alle_rgb.png">
+    <h1>Blitzer im Moerser Stadtgebiet im Zeitraum vom 01.01.2015 bis 31.12.2015</h1>
 </div>
 <div id="map"></div>
 <div id="best">
@@ -108,15 +108,13 @@
                 markers.addLayer(marker1);
             }
         }
-        document.getElementById('best').innerHTML ='<h2>Und hier noch ein paar interessante Zahlen... </h2>'
-                + 'Die meisten Verstöße wurden in der ' + max_str + ' begangen. Es waren: ' + settpoint(max) + ' Verstöße im Jahr 2015.' +
+        document.getElementById('best').innerHTML ='<h2>Und hier noch ein paar interessante Zahlen</h2>'
+                + '<p>Die meisten Verstöße wurden in der ' + max_str + ' begangen. Es waren: ' + settpoint(max) + ' Verstöße im Jahr 2015.' +
                 '<br>' + "Die höchste Bußgeldsumme wurde in der " + maxsumbus_str + " erzielt. Es waren: " + settpoint(maxsumbus) + "€." +
                 '<br>' + 'Das höchste Bußgeld wurde auf der ' + maxbus_str + ' erzielt. Es waren: ' + settpoint(maxbus) + '€.' +
                 '<br>' + 'Dabei wurde folgender Tatbestand festgestellt: ' + maxbus_tat + '. Die Tatbestandsnummer besagt, dass die Person innerhalb geschlossener Ortschaften zwischen 31-40 km/h zuschnell gefahren ist.' +
                 '<br>' + 'Den vollständigen Tatbestandskatalog finden sie unter <a href="http://www.kba.de/DE/ZentraleRegister/FAER/BT_KAT_OWI/bkat_owi_01052014_pdf.pdf?__blob=publicationFile&v=4">Bußgeldkatalog</a>. ' +
-                '<br>' + 'Es wurde 2015 an ' + nested_data.length + ' Orten geblitzt.' + '<br>' +
-                '<br>' + 'Für Anregungen können Sie uns gerne eine E-Mail schreiben an: <a href="mailto:offenedaten@moers.de">Offene Daten Moers</a> ' + '<br>' +
-                '<br>' + '<a href="https://www.moers.de/de/inhalt/impressum-und-rechtliche-hinweise/">Impressum</a>';
+                '<br>' + 'Es wurde 2015 an ' + nested_data.length + ' Orten geblitzt.</p>' + '<p>Für Anregungen können Sie uns gerne eine E-Mail schreiben an: <a href="mailto:offenedaten@moers.de">Offene Daten Moers</a></p>' + '<p><a href="https://www.moers.de/de/inhalt/impressum-und-rechtliche-hinweise/">Impressum</a></p>';
     });
     map.addLayer(markers);
 
